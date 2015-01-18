@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Linting!</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <style type="text/css">
+      @import url(https://fonts.googleapis.com/css?family=Lato);
+      @import url(https://fonts.googleapis.com/css?family=Droid+Serif:400,700,400italic);
+      @import url(https://fonts.googleapis.com/css?family=Ubuntu+Mono:400,700,400italic);
+
+      body { font-family: 'Droid Serif'; font-size: 150%;}
+
+      h1, h2, h3 {
+        font-family: 'Lato';
+        font-weight: bold;
+      }
+
+      h3 {
+        font-weight: normal;
+      }
+
+      li {
+        margin-bottom: 5px;
+      }
+      
+      .remark-code, .remark-inline-code { font-family: 'Ubuntu Mono'; }
+    </style>
+  </head>
+  <body>
+    <textarea id="source">
+
+class: center, middle
+
+# Linting!
+Mika Viinamäki
+
+---
+
+class: center, middle
+
+# What's that?
+
+- Fancy word for *static code analysis*
+- Your compiler does a lot of this already, ***if you have a compiler***
+- So does your IDE, ***if you have an IDE***
+
+---
+
+# `eslint` on Lokki server
+
+```
+$ eslint .
+
+  (...lots of output omitted...)
+
+   69:0   error  Expected space after // in comment    spaced-line-comment
+   70:0   error  Expected space after // in comment    spaced-line-comment
+   71:0   error  Expected space after // in comment    spaced-line-comment
+   73:0   error  Expected space after // in comment    spaced-line-comment
+   75:0   error  Expected space after // in comment    spaced-line-comment
+   77:0   error  Expected space after // in comment    spaced-line-comment
+   79:0   error  Expected space after // in comment    spaced-line-comment
+   81:0   error  Expected space after // in comment    spaced-line-comment
+   83:0   error  Expected space after // in comment    spaced-line-comment
+   85:0   error  Expected space after // in comment    spaced-line-comment
+   88:0   error  Expected space after // in comment    spaced-line-comment
+  100:0   error  Expected space after // in comment    spaced-line-comment
+  101:1   error  Unexpected blank line at end of file  eol-last
+
+unittest-runner.js
+  13:44  error  Missing "use strict" statement                    strict
+  18:8   error  Don't use process.exit(); throw an error instead  no-process-exit
+
+✖ 2029 problems
+```
+
+---
+
+class: center, middle
+
+# What does it spot?
+### Let's play a game – spot a bug!
+
+---
+
+class: middle
+
+```javascript
+
+module.exports = {
+  // User dashboard contains location when it has been posted.
+  userDashBoardWithLocation: function(test) {
+    lmHelpers.createLocMapUser(test, 'dev1', function(auth, reply) {
+      var authWithLocation = JSON.parse(JSON.stringify(auth));
+      // test contents omitted
+    });
+  },
+
+  // User dashboard contains battery status when it has been posted.
+  userDashBoardWithLocation: function(test) {
+    lmHelpers.createLocMapUser(test, 'dev1', function(auth, reply) {
+      var authWithLocation = JSON.parse(JSON.stringify(auth));
+      // (different) test contents omitted
+    });
+  }
+}
+
+```
+
+---
+
+class: middle
+
+```javascript
+
+module.exports = {
+  // User dashboard contains location when it has been posted.
+* userDashBoardWithLocation: function(test) {
+    lmHelpers.createLocMapUser(test, 'dev1', function(auth, reply) {
+      var authWithLocation = JSON.parse(JSON.stringify(auth));
+      // test contents omitted
+    });
+  },
+
+  // User dashboard contains battery status when it has been posted.
+* userDashBoardWithLocation: function(test) {
+    lmHelpers.createLocMapUser(test, 'dev1', function(auth, reply) {
+      var authWithLocation = JSON.parse(JSON.stringify(auth));
+      // (different) test contents omitted
+    });
+  }
+}
+
+```
+```
+Duplicate key 'userDashBoardWithLocation'
+```
+
+---
+
+class: middle
+
+```javascript
+function buildQuestionHTMLFramework(element, id, exerciseName) {
+  var idElement = "#parqu-panel" + id;
+
+  var panelGroup = $("<div></div>", {
+    class: "panel-group",
+    id: "parqu-panel" + id
+  });
+
+  var panelDefault = $("<div></div>", {
+    class: "panel panel-default"
+  });
+
+  var exerciseName = $("<h4/>", {
+    class: "tehtava"
+  }).text("Koodinluku: " + exerciseName);
+
+  $(element).append(panelGroup);
+  $(idElement).append(panelDefault);
+  $(idElement + " .panel-heading").append(exerciseName);
+}
+```
+
+---
+
+class: middle
+
+```javascript
+*function buildQuestionHTMLFramework(element, id, exerciseName) {
+  var idElement = "#parqu-panel" + id;
+
+  var panelGroup = $("<div></div>", {
+    class: "panel-group",
+    id: "parqu-panel" + id
+  });
+
+  var panelDefault = $("<div></div>", {
+    class: "panel panel-default"
+  });
+
+* var exerciseName = $("<h4/>", {
+    class: "tehtava"
+  }).text("Koodinluku: " + exerciseName);
+
+  $(element).append(panelGroup);
+  $(idElement).append(panelDefault);
+* $(idElement + " .panel-heading").append(exerciseName);
+}
+```
+```
+exerciseName is already defined
+```
+
+---
+
+class: middle
+
+```javascript
+function fun(foo, bar) {
+  while (true) {
+    for (var a = 0; a &lt; 10; a++) {
+      if (foo)
+        bar();
+        console.log("foo");
+        console.log("bar");
+      }
+   }
+}
+```
+
+---
+
+class: middle
+
+```javascript
+function fun(foo, bar) {
+  while (true) {
+    for (var a = 0; a &lt; 10; a++) {
+*     if (foo)
+        bar();
+        console.log("foo");
+        console.log("bar");
+      }
+   }
+}
+```
+```
+Expected { after 'if' condition
+```
+
+---
+
+class: center, middle
+
+# In short: Use proper tools
+- Don't code with `notepad.exe`
+- ...unless you can integrate a lint to it
+- Useful as a part of your CI process
+- Maybe as Git pre-commit hook too?
+
+---
+
+class: center, middle
+
+# Thanks :-)
+
+    </textarea>
+    <script src="https://gnab.github.io/remark/downloads/remark-latest.min.js">
+    </script>
+    <script>
+      var slideshow = remark.create();
+    </script>
+  </body>
+</html>
